@@ -8,8 +8,9 @@ import flixel.FlxState;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
+import haxe.Timer;
 
-class PlayState extends FlxState
+class PlayState extends FlxState // Maybe story is like where the plr spawns somewhere not knowing where he is
 {
 	var bg:FlxSprite = new FlxSprite(0, 0, AssetPaths.bg__png);
 
@@ -18,6 +19,10 @@ class PlayState extends FlxState
 	var lakeSign:FlxSprite = new FlxSprite(837, 307, AssetPaths.sign__png);
 	var lakeRobber:Npc = new Npc(860, 307, 2);
 	var lakeBag:FlxSprite = new FlxSprite(900, 323, AssetPaths.bag__png);
+	var lakeBagPickedUp:Bool = false;
+	var lakeQuestComplete:Bool = false;
+	var timesSignInteracted:Int = 0;
+	var timeSinceRobberLeft:Int = 0;
 
 	// player vars
 	var plr:Player;
@@ -33,7 +38,7 @@ class PlayState extends FlxState
 	var timer:FlxTimer;
 
 	var skipTimeAmnt:Int = 0;
-	var chooseTimeSkip:FlxText = new FlxText(85, 359, FlxG.width, "How far to go back: ", 32);
+	var chooseTimeSkip:FlxText = new FlxText(40, 359, FlxG.width, "How many hours to go back: ", 50);
 	var inChooseTimeState:Bool = false;
 
 	// Random stuff
@@ -44,13 +49,15 @@ class PlayState extends FlxState
 	override public function create()
 	{
 		super.create();
+		// plr.movable = true;
+
+		chooseTimeSkip.setFormat(AssetPaths.byteBounce__ttf, 50, FlxColor.WHITE);
+		time.setFormat(AssetPaths.byteBounce__ttf, 32, FlxColor.WHITE);
 
 		FlxG.worldBounds.set(0, 0, 2560, 1440);
 
 		bg.scrollFactor.set(0, 0);
 		add(bg);
-
-		add(clock);
 
 		add(time);
 
@@ -75,6 +82,8 @@ class PlayState extends FlxState
 		plr = new Player(0, 0);
 		add(plr);
 
+		add(clock);
+
 		dialouge = new Dialogue();
 		dialouge.box.scrollFactor.set(0, 0);
 		dialouge.text.scrollFactor.set(0, 0);
@@ -84,6 +93,9 @@ class PlayState extends FlxState
 
 		chooseTimeSkip.scrollFactor.set(0, 0);
 		chooseTimeSkip.color = FlxColor.WHITE;
+
+		add(dialouge);
+		dialouge.startDialogue(DialogueData.introPlrText);
 	}
 
 	override public function update(elapsed:Float)
@@ -91,8 +103,10 @@ class PlayState extends FlxState
 		super.update(elapsed);
 		FlxG.camera.follow(plr);
 
+		var secondTextDialouge:Array<String> = ["I left: " + Std.string(timeSinceRobberLeft) + " hours ago"];
+
 		FlxG.collide(plr, lake);
-		FlxG.collide(plr, lakeSign);
+		// FlxG.collide(plr, lakeSign);
 
 		// time stuff
 		if (timeValue < 0)
@@ -117,17 +131,11 @@ class PlayState extends FlxState
 		if (plr.overlaps(clock) && clockHeld == false)
 		{
 			clockHeld = true;
+			add(dialouge);
+			dialouge.startDialogue(DialogueData.pickedUpClockText);
 		}
 
-		if (clockHeld == true && FlxG.keys.justPressed.Q)
-		{
-			timeValue = timeValue - 1;
-			plr.x = savedPlrX;
-			plr.y = savedPlrY;
-			// clock.kill();
-		}
-
-		if (FlxG.keys.justPressed.Y) // temp for testing
+		if (FlxG.keys.justPressed.Q && clockHeld == true) // temp for testing
 		{
 			inChooseTimeState = true;
 			plr.movable = false;
@@ -135,7 +143,7 @@ class PlayState extends FlxState
 
 		if (inChooseTimeState == true)
 		{
-			chooseTimeSkip.text = "< How far to go back: " + skipTimeAmnt + " >";
+			chooseTimeSkip.text = "How many hours to go back: " + skipTimeAmnt;
 			add(chooseTimeSkip);
 
 			if (FlxG.keys.justPressed.LEFT)
@@ -147,11 +155,17 @@ class PlayState extends FlxState
 				skipTimeAmnt = skipTimeAmnt + 1;
 			}
 
-			if (FlxG.keys.justPressed.ENTER)
+			if (FlxG.keys.justPressed.ENTER && skipTimeAmnt != 0)
 			{
 				timeValue = timeValue - skipTimeAmnt;
 				plr.x = savedPlrX;
 				plr.y = savedPlrY;
+				inChooseTimeState = false;
+				plr.movable = true;
+				remove(chooseTimeSkip);
+			}
+			else if (FlxG.keys.justPressed.ENTER && skipTimeAmnt == 0)
+			{
 				inChooseTimeState = false;
 				plr.movable = true;
 				remove(chooseTimeSkip);
@@ -173,9 +187,56 @@ class PlayState extends FlxState
 			dialouge.startDialogue(DialogueData.text1);
 		}
 
-		if (timeValue == 2)
+		if (timeValue >= 1)
 		{
-			// s
+			lakeRobber.kill();
+			lakeBag.kill();
+			lakeSign.revive();
+
+			if (plr.overlaps(lakeSign) && FlxG.keys.justPressed.E)
+			{
+				if (timesSignInteracted == 0)
+				{
+					add(dialouge);
+					dialouge.startDialogue(DialogueData.lakeSignText);
+					timesSignInteracted = 1;
+				}
+				else if (timesSignInteracted == 1)
+				{
+					add(dialouge);
+					dialouge.startDialogue(secondTextDialouge);
+				}
+			}
+		}
+		else
+		{
+			lakeRobber.revive();
+			lakeBag.revive();
+			lakeSign.kill();
+
+			if (plr.overlaps(lakeBag) && lakeBagPickedUp == false)
+			{
+				lakeBagPickedUp = true;
+				add(dialouge);
+				dialouge.startDialogue(DialogueData.lakeRobberText);
+			}
+		}
+
+		if (lakeBagPickedUp == true && lakeQuestComplete == false)
+		{
+			lakeBag.x = plr.x;
+			lakeBag.y = plr.y;
+		}
+
+		if (plr.overlaps(testNPC) && lakeBagPickedUp == true && lakeQuestComplete == false && FlxG.keys.justPressed.E)
+		{
+			lakeQuestComplete = true;
+			lakeBag.x = testNPC.x + 15;
+			lakeBag.y = testNPC.y + 14;
+			add(dialouge);
+			dialouge.startDialogue(DialogueData.lakeQuestText2);
+			plr.movable = false;
+			wait(11000, endQuest);
 		}
 	}
 
@@ -184,6 +245,25 @@ class PlayState extends FlxState
 		timeValue++;
 		savedPlrX = plr.x;
 		savedPlrY = plr.y;
+
+		if (timeValue >= 1)
+		{
+			timeSinceRobberLeft = timeSinceRobberLeft + 1;
+		}
+
 		tmr.start(30, onTimer);
+	}
+
+	public static function wait(milliseconds:Int, callback:Void->Void)
+	{
+		Timer.delay(callback, milliseconds);
+	}
+
+	function endQuest() // I have to figure out how to do multiple quests in one file unless the first quest is the only one in playstate..
+	{
+		FlxG.camera.fade(FlxColor.BLACK, 0.5, false, function()
+		{
+			FlxG.switchState(new MenuState());
+		});
 	}
 }

@@ -41,7 +41,7 @@ class Dialogue extends FlxGroup
 		add(box);
 
 		text = new FlxText(boxX + 24, boxY + 20, boxWidth - 48, "");
-		text.setFormat(null, 18, FlxColor.WHITE, "center");
+		text.setFormat(AssetPaths.byteBounce__ttf, 32, FlxColor.WHITE, "center");
 		add(text);
 	}
 
