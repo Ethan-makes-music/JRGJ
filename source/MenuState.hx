@@ -28,7 +28,7 @@ class MenuState extends FlxState
 
 		if (FlxG.keys.justPressed.ENTER)
 		{
-			FlxG.switchState(new PlayState());
+			FlxG.switchState(new PlayState(1));
 		}
 	}
 }

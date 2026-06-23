@@ -16,6 +16,22 @@ class Npc extends FlxSprite
 		{
 			this.loadGraphic(AssetPaths.cloackPerson__png, true, 16, 16);
 		}
+		else if (spriteNum == 3)
+		{
+			this.loadGraphic(AssetPaths.chillGuy__png, true, 16, 16);
+		}
+		else if (spriteNum == 4)
+		{
+			this.loadGraphic(AssetPaths.fatCat__png, true, 16, 16);
+		}
+		else if (spriteNum == 5)
+		{
+			this.loadGraphic(AssetPaths.knight__png, true, 16, 16);
+		}
+		else if (spriteNum == 6)
+		{
+			this.loadGraphic(AssetPaths.goblin__png, true, 16, 16);
+		}
 
 		this.animation.add("idle", [0, 1], 2, true);
 
