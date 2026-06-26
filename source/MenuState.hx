@@ -12,11 +12,13 @@ class MenuState extends FlxState
 	var bg:FlxSprite = new FlxSprite(0, 0, AssetPaths.bg__png);
 	var bg2:FlxBackdrop;
 
-	var gameTitle:FlxText = new FlxText(37, 48, FlxG.width, "Continuance", 128);
+	var gameTitle:FlxText = new FlxText(37, 136, FlxG.width, "Continuance", 128);
 
-	var pressEnterToStart:FlxText = new FlxText(68, 194, FlxG.width, "Press Enter To Start", 64);
+	var pressEnterToStart:FlxText = new FlxText(68, 282, FlxG.width, "Press Enter To Start", 64);
 
 	var pressEnterOption:FlxText = new FlxText(50, 255, FlxG.width, "Press Shift For Options", 64);
+
+	var creditsShit:FlxText = new FlxText(2, 465, FlxG.width, "'C' For Credits", 16);
 
 	override function create()
 	{
@@ -30,6 +32,9 @@ class MenuState extends FlxState
 
 		gameTitle.setFormat(AssetPaths.byteBounce__ttf, 128, FlxColor.WHITE);
 		add(gameTitle);
+
+		creditsShit.setFormat(AssetPaths.byteBounce__ttf, 16, FlxColor.WHITE);
+		// add(creditsShit);
 
 		pressEnterToStart.setFormat(AssetPaths.byteBounce__ttf, 64, FlxColor.WHITE);
 		add(pressEnterToStart);

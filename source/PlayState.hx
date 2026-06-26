@@ -2,6 +2,8 @@ package;
 
 import dialogue.Dialogue;
 import dialogue.DialogueData;
+import filters.Grain;
+import filters.Scanline;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxState;
@@ -9,6 +11,10 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import haxe.Timer;
+import openfl.Lib;
+import openfl.filters.BitmapFilter;
+import openfl.filters.ShaderFilter;
+import openfl.filters.ShaderFilter;
 
 class PlayState extends FlxState // Maybe story is like where the plr spawns somewhere not knowing where he is
 {
@@ -68,6 +74,39 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 
 	var q2sign:FlxSprite = new FlxSprite(776, 321, AssetPaths.sign__png);
 
+	// 3rd quest vars
+	var yellowAndorf:Npc = new Npc(103, 112, 7);
+	var greenAndorf:Npc = new Npc(763, 215, 9);
+	var q3randomDude:Npc = new Npc(537, 438, 3);
+	var blueAndorf:Npc = new Npc(0, 0, 8);
+
+	var yellowHouse:FlxSprite = new FlxSprite(69, 42, AssetPaths.shaq__png);
+	var q3House2:FlxSprite = new FlxSprite(506, 368, AssetPaths.house__png);
+	var townHall:FlxSprite = new FlxSprite(767, 17, AssetPaths.townHall__png);
+
+	var blueAndorfTrigger:FlxSprite = new FlxSprite(279, -474, null);
+	var q3Lake:FlxSprite = new FlxSprite(88, 336, AssetPaths.lake__png);
+
+	var truthCutscene:Bool = false;
+	var cutsceneBugFix:Bool = false;
+
+	var portal:FlxSprite = new FlxSprite(909, 146, AssetPaths.portal__png);
+
+	// random townhall items
+	var q3Bag:FlxSprite = new FlxSprite(658, 183, AssetPaths.bag__png);
+	var q3Toilet:FlxSprite = new FlxSprite(747, 163, AssetPaths.toilet__png);
+	var q3Coin:FlxSprite = new FlxSprite(893, 117, AssetPaths.coin__png);
+	var q3Potion:FlxSprite = new FlxSprite(877, 199, AssetPaths.potion__png);
+	var q3Bell:FlxSprite = new FlxSprite(806, 169, AssetPaths.bell__png);
+
+	var townHallFallen:Bool = false;
+	var q3BellPickedUp:Bool = false;
+	var cutsceneDone:Bool = false;
+
+	// Filters
+	var filters:Array<BitmapFilter> = [];
+	var filterMap:Map<String, {filter:BitmapFilter, ?onUpdate:Void->Void}>;
+
 	public function new(quest:Int)
 	{
 		super();
@@ -78,8 +117,40 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 	override public function create()
 	{
 		super.create();
+		blueAndorfTrigger.makeGraphic(107, 1412, FlxColor.BLUE);
 		// plr.movable = true;
+		portal.loadGraphic(AssetPaths.portal__png, true, 16, 32);
+		portal.animation.add("idle", [0, 1], 4, true);
 
+		// just following a example on a github repo and hoping for the best
+
+		filterMap = [
+			"Scanline" => {
+				filter: new ShaderFilter(new Scanline()),
+			},
+			"Grain" =>
+			{
+				var shader = new Grain();
+				{
+					filter: new ShaderFilter(shader),
+					onUpdate: function()
+					{
+						#if (openfl >= "8.0.0")
+						shader.uTime.value = [Lib.getTimer() / 1000];
+						#else
+						shader.uTime = Lib.getTimer() / 1000;
+						#end
+					}
+				}
+			}
+		];
+
+		for (key in filterMap.keys())
+		{
+			filters.push(filterMap.get(key).filter);
+		}
+
+		// -----
 		q2sign.scale.x = 2;
 		q2sign.scale.y = 2;
 
@@ -125,6 +196,46 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 			lake.updateHitbox();
 			add(lake);
 		}
+		else if (questActive == 3)
+		{
+			add(yellowAndorf);
+			add(greenAndorf);
+			add(q3randomDude);
+
+			q3Lake.scale.x = 2;
+			q3Lake.scale.y = 2;
+			q3Lake.solid = true;
+			q3Lake.immovable = true;
+			q3Lake.updateHitbox();
+			add(q3Lake);
+			yellowHouse.scale.x = 2;
+			yellowHouse.scale.y = 2;
+			yellowHouse.solid = true;
+			yellowHouse.immovable = true;
+			yellowHouse.updateHitbox();
+			add(yellowHouse);
+			townHall.scale.x = 2;
+			townHall.scale.y = 2;
+			townHall.solid = true;
+			townHall.immovable = true;
+			townHall.updateHitbox();
+			add(townHall);
+			q3House2.scale.x = 2;
+			q3House2.scale.y = 2;
+			q3House2.solid = true;
+			q3House2.immovable = true;
+			q3House2.updateHitbox();
+			add(q3House2);
+
+			add(q3Bag);
+			add(q3Toilet);
+			add(q3Coin);
+			add(q3Potion);
+
+			portal.scale.x = 2;
+			portal.scale.y = 2;
+			portal.updateHitbox();
+		}
 
 		FlxG.camera.follow(plr);
 		plr = new Player(0, 0);
@@ -136,6 +247,14 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 
 			clock.x = 236;
 			clock.y = 269;
+		}
+		else if (questActive == 3)
+		{
+			plr.x = 205;
+			plr.y = 289;
+
+			clock.x = 193;
+			clock.y = 260;
 		}
 
 		add(plr);
@@ -196,6 +315,12 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 		super.update(elapsed);
 		FlxG.camera.follow(plr);
 
+		for (filter in filterMap)
+		{
+			if (filter.onUpdate != null)
+				filter.onUpdate();
+		}
+
 		var secondTextDialouge:Array<String> = ["I left: " + Std.string(timeSinceRobberLeft) + " hours ago"];
 
 		if (questActive == 1)
@@ -207,6 +332,13 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 		{
 			FlxG.collide(plr, lake);
 			FlxG.collide(plr, lakeHouse);
+		}
+		else if (questActive == 3)
+		{
+			FlxG.collide(plr, q3Lake);
+			FlxG.collide(plr, townHall);
+			FlxG.collide(plr, yellowHouse);
+			FlxG.collide(plr, q3House2);
 		}
 
 		// time stuff
@@ -479,6 +611,71 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 				canGetCoin = false;
 			}
 		}
+		else if (questActive == 3)
+		{
+			if (timeValue >= 12)
+			{
+				townHallFallen = true;
+				if (townHallFallen == true)
+				{
+					townHall.loadGraphic(AssetPaths.townHallNoBell__png);
+					townHall.updateHitbox();
+					add(q3Bell);
+
+					greenAndorf.kill();
+
+					if (plr.overlaps(q3Bell) && q3BellPickedUp == false)
+					{
+						q3BellPickedUp = true;
+					}
+
+					if (q3BellPickedUp == true)
+					{
+						blueAndorfTrigger.visible = false;
+						add(blueAndorfTrigger);
+						q3Bell.x = plr.x;
+						q3Bell.y = plr.y + 14;
+
+						if (plr.overlaps(blueAndorfTrigger) && cutsceneDone == false)
+						{
+							cutsceneDone = true;
+							truthCutscene = true;
+							startTruthCutscene();
+						}
+
+						if (plr.overlaps(portal) && FlxG.keys.justPressed.E)
+						{
+							endGame();
+						}
+					}
+				}
+			}
+			else if (timeValue < 12)
+			{
+				if (townHallFallen == false)
+				{
+					townHall.loadGraphic(AssetPaths.townHall__png);
+				}
+
+				if (plr.overlaps(yellowAndorf) && FlxG.keys.justPressed.E)
+				{
+					add(dialouge);
+					dialouge.startDialogue(DialogueData.quest3YellowAndorf1);
+				}
+
+				if (plr.overlaps(q3randomDude) && FlxG.keys.justPressed.E)
+				{
+					add(dialouge);
+					dialouge.startDialogue(DialogueData.quest3StormIntel);
+				}
+
+				if (plr.overlaps(greenAndorf) && FlxG.keys.justPressed.E)
+				{
+					add(dialouge);
+					dialouge.startDialogue(DialogueData.quest3GreenAndorf);
+				}
+			}
+		}
 	}
 
 	function onTimer(tmr:FlxTimer)
@@ -500,6 +697,16 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 		Timer.delay(callback, milliseconds);
 	}
 
+	function plrMoveable()
+	{
+		plr.movable = true;
+		truthCutscene = false;
+		cutsceneDone = true;
+
+		portal.animation.play("idle");
+		add(portal);
+	}
+
 	function endQuest() // I have to figure out how to do multiple quests in one file unless the first quest is the only one in playstate..
 	{
 		FlxG.camera.fade(FlxColor.BLACK, 0.5, false, function()
@@ -513,6 +720,36 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 		FlxG.camera.fade(FlxColor.BLACK, 0.5, false, function()
 		{
 			FlxG.switchState(new PlayState(3));
+		});
+	}
+
+	function startTruthCutscene()
+	{
+		blueAndorf.x = plr.x - 45;
+		blueAndorf.y = plr.y;
+
+		add(blueAndorf);
+
+		plr.movable = false;
+
+		FlxG.sound.music.stop();
+		FlxG.sound.playMusic(AssetPaths.whyIhateTheRain__ogg);
+
+		FlxG.camera.filters = filters;
+		FlxG.game.setFilters(filters);
+		FlxG.game.filtersEnabled = true;
+
+		add(dialouge);
+		dialouge.startDialogue(DialogueData.q3blueAndorfTruth);
+
+		wait(20000, plrMoveable);
+	}
+
+	function endGame()
+	{
+		FlxG.camera.fade(FlxColor.BLACK, 0.5, false, function()
+		{
+			FlxG.switchState(new EndState()); // switch to endState
 		});
 	}
 }

@@ -32,6 +32,18 @@ class Npc extends FlxSprite
 		{
 			this.loadGraphic(AssetPaths.goblin__png, true, 16, 16);
 		}
+		else if (spriteNum == 7)
+		{
+			this.loadGraphic(AssetPaths.andorfYellow__png, true, 16, 16);
+		}
+		else if (spriteNum == 8)
+		{
+			this.loadGraphic(AssetPaths.andorfBlue__png, true, 16, 16);
+		}
+		else if (spriteNum == 9)
+		{
+			this.loadGraphic(AssetPaths.andorfGreen__png, true, 16, 16);
+		}
 
 		this.animation.add("idle", [0, 1], 2, true);
 
