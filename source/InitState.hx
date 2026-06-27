@@ -8,6 +8,7 @@ class InitState extends FlxState
 	override function create()
 	{
 		super.create();
+		FlxG.mouse.visible = false;
 		FlxG.sound.playMusic(AssetPaths.mainMenu__ogg, 1, true);
 		FlxG.switchState(new MenuState());
 	}

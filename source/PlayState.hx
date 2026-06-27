@@ -7,6 +7,7 @@ import filters.Scanline;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxState;
+import flixel.sound.FlxSound;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
@@ -107,6 +108,10 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 	var filters:Array<BitmapFilter> = [];
 	var filterMap:Map<String, {filter:BitmapFilter, ?onUpdate:Void->Void}>;
 
+	var selectSound:FlxSound;
+	var pickUpSound:FlxSound;
+	var selectSound2:FlxSound;
+
 	public function new(quest:Int)
 	{
 		super();
@@ -117,10 +122,15 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 	override public function create()
 	{
 		super.create();
+		FlxG.mouse.visible = false;
 		blueAndorfTrigger.makeGraphic(107, 1412, FlxColor.BLUE);
 		// plr.movable = true;
 		portal.loadGraphic(AssetPaths.portal__png, true, 16, 32);
 		portal.animation.add("idle", [0, 1], 4, true);
+
+		selectSound = FlxG.sound.load(AssetPaths.select__ogg, 0.5, false);
+		pickUpSound = FlxG.sound.load(AssetPaths.pickup__ogg, 1, false);
+		selectSound2 = FlxG.sound.load(AssetPaths.select2__ogg, 0.5, false);
 
 		// just following a example on a github repo and hoping for the best
 
@@ -363,6 +373,7 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 
 		if (plr.overlaps(clock) && clockHeld == false)
 		{
+			pickUpSound.play();
 			clockHeld = true;
 			add(dialouge);
 			dialouge.startDialogue(DialogueData.pickedUpClockText);
@@ -372,15 +383,18 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 		{
 			inChooseTimeState = true;
 			plr.movable = false;
+			selectSound.play();
 		}
 
 		if (inChooseTimeState == true && FlxG.keys.justPressed.F && goForwardOrBackward == false)
 		{
 			goForwardOrBackward = true;
+			selectSound.play();
 		}
 		else if (inChooseTimeState == true && FlxG.keys.justPressed.F && goForwardOrBackward == true)
 		{
 			goForwardOrBackward = false;
+			selectSound.play();
 		}
 
 		if (inChooseTimeState == true && goForwardOrBackward == false)
@@ -393,10 +407,12 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 			if (FlxG.keys.justPressed.LEFT)
 			{
 				skipTimeAmnt = skipTimeAmnt - 1;
+				selectSound.play();
 			}
 			else if (FlxG.keys.justPressed.RIGHT)
 			{
 				skipTimeAmnt = skipTimeAmnt + 1;
+				selectSound.play();
 			}
 
 			if (FlxG.keys.justPressed.ENTER && skipTimeAmnt != 0)
@@ -408,6 +424,7 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 				plr.movable = true;
 				remove(chooseTimeSkip);
 				remove(chooseTimeDsc);
+				selectSound.play();
 			}
 			else if (FlxG.keys.justPressed.ENTER && skipTimeAmnt == 0)
 			{
@@ -415,6 +432,7 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 				plr.movable = true;
 				remove(chooseTimeSkip);
 				remove(chooseTimeDsc);
+				selectSound.play();
 			}
 
 			if (skipTimeAmnt < 0)
@@ -436,10 +454,12 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 			if (FlxG.keys.justPressed.LEFT)
 			{
 				skipTimeAmnt = skipTimeAmnt - 1;
+				selectSound.play();
 			}
 			else if (FlxG.keys.justPressed.RIGHT)
 			{
 				skipTimeAmnt = skipTimeAmnt + 1;
+				selectSound.play();
 			}
 
 			if (FlxG.keys.justPressed.ENTER && skipTimeAmnt != 0)
@@ -451,6 +471,7 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 				plr.movable = true;
 				remove(chooseTimeSkip);
 				remove(chooseTimeDsc);
+				selectSound.play();
 			}
 			else if (FlxG.keys.justPressed.ENTER && skipTimeAmnt == 0)
 			{
@@ -458,6 +479,7 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 				plr.movable = true;
 				remove(chooseTimeSkip);
 				remove(chooseTimeDsc);
+				selectSound.play();
 			}
 
 			if (skipTimeAmnt < 0)
@@ -476,12 +498,14 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 			{
 				add(dialouge);
 				dialouge.startDialogue(DialogueData.text1);
+				selectSound2.play();
 			}
 
 			if (plr.overlaps(secondNpc) && FlxG.keys.justPressed.E)
 			{
 				add(dialouge);
 				dialouge.startDialogue(DialogueData.lakeNpcText1);
+				selectSound2.play();
 			}
 
 			if (timeValue >= 1)
@@ -492,6 +516,7 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 
 				if (plr.overlaps(lakeSign) && FlxG.keys.justPressed.E)
 				{
+					selectSound2.play();
 					if (timesSignInteracted == 0)
 					{
 						add(dialouge);
@@ -514,6 +539,7 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 				if (plr.overlaps(lakeBag) && lakeBagPickedUp == false)
 				{
 					lakeBagPickedUp = true;
+					pickUpSound.play();
 					add(dialouge);
 					dialouge.startDialogue(DialogueData.lakeRobberText);
 				}
@@ -527,6 +553,7 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 
 			if (plr.overlaps(testNPC) && lakeBagPickedUp == true && lakeQuestComplete == false && FlxG.keys.justPressed.E)
 			{
+				selectSound2.play();
 				lakeQuestComplete = true;
 				lakeBag.x = testNPC.x + 15;
 				lakeBag.y = testNPC.y + 14;
@@ -542,9 +569,11 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 			{
 				add(dialouge);
 				dialouge.startDialogue(DialogueData.quest2Knight1);
+				selectSound2.play();
 			}
 			else if (plr.overlaps(sKnight) && FlxG.keys.justPressed.E && gotPotion == true)
 			{
+				selectSound2.play();
 				add(dialouge);
 				dialouge.startDialogue(DialogueData.quest2Knight2);
 				plr.movable = false;
@@ -555,6 +584,7 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 			{
 				add(dialouge);
 				dialouge.startDialogue(DialogueData.quest2Cat1);
+				selectSound2.play();
 			}
 
 			if (plr.overlaps(sGoblin) && FlxG.keys.justPressed.E && gotMoney == false)
@@ -562,6 +592,7 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 				add(dialouge);
 				dialouge.startDialogue(DialogueData.quest2Goblin1);
 				gotPotion = false;
+				selectSound2.play();
 			}
 			else if (plr.overlaps(sGoblin) && FlxG.keys.justPressed.E && gotMoney == true)
 			{
@@ -569,12 +600,16 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 				dialouge.startDialogue(DialogueData.quest2Goblin2);
 				gotPotion = true;
 				remove(sPotion);
+				selectSound2.play();
 			}
 
 			if (canGetCoin == true && plr.overlaps(sCoin))
 			{
 				gotMoney = true;
 				remove(sCoin);
+				sCoin.kill();
+				canGetCoin = false;
+				// pickUpSound.play();
 			}
 
 			if (timeValue >= 1)
@@ -588,6 +623,7 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 				{
 					add(dialouge);
 					dialouge.startDialogue(DialogueData.quest2Sign);
+					selectSound2.play();
 				}
 			}
 			if (timeValue >= 4)
@@ -619,6 +655,8 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 				if (townHallFallen == true)
 				{
 					townHall.loadGraphic(AssetPaths.townHallNoBell__png);
+					townHall.scale.x = 2;
+					townHall.scale.y = 2;
 					townHall.updateHitbox();
 					add(q3Bell);
 
@@ -627,6 +665,7 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 					if (plr.overlaps(q3Bell) && q3BellPickedUp == false)
 					{
 						q3BellPickedUp = true;
+						pickUpSound.play();
 					}
 
 					if (q3BellPickedUp == true)
@@ -646,6 +685,7 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 						if (plr.overlaps(portal) && FlxG.keys.justPressed.E)
 						{
 							endGame();
+							selectSound2.play();
 						}
 					}
 				}
@@ -661,18 +701,21 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 				{
 					add(dialouge);
 					dialouge.startDialogue(DialogueData.quest3YellowAndorf1);
+					selectSound2.play();
 				}
 
 				if (plr.overlaps(q3randomDude) && FlxG.keys.justPressed.E)
 				{
 					add(dialouge);
 					dialouge.startDialogue(DialogueData.quest3StormIntel);
+					selectSound2.play();
 				}
 
 				if (plr.overlaps(greenAndorf) && FlxG.keys.justPressed.E)
 				{
 					add(dialouge);
 					dialouge.startDialogue(DialogueData.quest3GreenAndorf);
+					selectSound2.play();
 				}
 			}
 		}
@@ -735,9 +778,11 @@ class PlayState extends FlxState // Maybe story is like where the plr spawns som
 		FlxG.sound.music.stop();
 		FlxG.sound.playMusic(AssetPaths.whyIhateTheRain__ogg);
 
+		#if html5
 		FlxG.camera.filters = filters;
 		FlxG.game.setFilters(filters);
 		FlxG.game.filtersEnabled = true;
+		#end
 
 		add(dialouge);
 		dialouge.startDialogue(DialogueData.q3blueAndorfTruth);

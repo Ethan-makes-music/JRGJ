@@ -3,6 +3,7 @@ package dialogue;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.group.FlxGroup;
+import flixel.sound.FlxSound;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 
@@ -26,9 +27,12 @@ class Dialogue extends FlxGroup
 	public var selectedChoice:String = "";
 	public var onChoiceMade:String->Void = null;
 
+	var selectSound:FlxSound;
+
 	public function new()
 	{
 		super();
+		selectSound = FlxG.sound.load(AssetPaths.select__ogg, 0.5, false);
 
 		var boxWidth:Int = 1000;
 		var boxHeight:Int = 100;
@@ -94,6 +98,7 @@ class Dialogue extends FlxGroup
 		{
 			if (FlxG.keys.justPressed.SPACE || FlxG.keys.justPressed.ENTER)
 			{
+				selectSound.play();
 				currentLine++;
 				if (currentLine >= lines.length)
 				{

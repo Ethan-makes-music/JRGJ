@@ -4,6 +4,7 @@ import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxState;
 import flixel.addons.display.FlxBackdrop;
+import flixel.sound.FlxSound;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 
@@ -20,11 +21,18 @@ class MenuState extends FlxState
 
 	var creditsShit:FlxText = new FlxText(2, 465, FlxG.width, "'C' For Credits", 16);
 
+	var selectSound:FlxSound;
+
 	override function create()
 	{
 		super.create();
+		FlxG.mouse.visible = false;
 		add(bg);
 		FlxG.sound.playMusic(AssetPaths.mainMenu__ogg, 1, true);
+
+		FlxG.camera.filters = null;
+		FlxG.camera.filtersEnabled = false;
+		selectSound = FlxG.sound.load(AssetPaths.select__ogg, 1, false);
 
 		bg2 = new FlxBackdrop(AssetPaths.map1Decoground__png);
 		bg2.velocity.set(-30, 0);
@@ -50,6 +58,7 @@ class MenuState extends FlxState
 		if (FlxG.keys.justPressed.ENTER)
 		{
 			FlxG.switchState(new PlayState(1));
+			selectSound.play();
 		}
 	}
 }

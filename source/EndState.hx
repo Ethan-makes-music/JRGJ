@@ -14,6 +14,7 @@ class EndState extends FlxState
 	override function create()
 	{
 		super.create();
+		FlxG.mouse.visible = false;
 
 		dialouge = new Dialogue();
 		dialouge.box.scrollFactor.set(0, 0);
