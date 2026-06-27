@@ -1,1 +1,2 @@
+If anyone for some reason wants to make a pull request here somes that needs to be done for the game:
 Make filters stop once you get to menu
